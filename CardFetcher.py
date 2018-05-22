@@ -74,7 +74,7 @@ class CardFetch(Client):
                              thread_id=thread_id, thread_type=thread_type)
 
 
-with open('settings.json', 'r') as json_data:
+with open('Settings.json', 'r') as json_data:
     d = json.load(json_data)
     cred_List = d["credentials"]
 
