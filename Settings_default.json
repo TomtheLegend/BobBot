@@ -3,6 +3,6 @@
     "password": "",
     "spoiler_thread":  ""
 },
-    "user_dict": {}
-
+    "user_dict": {},
+    "spoiler_sets": []
 }

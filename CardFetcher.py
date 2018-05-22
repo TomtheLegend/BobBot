@@ -20,17 +20,21 @@ class CardFetch(Client):
 
     def local_get_card(self, author_id, message_object, thread_id, thread_type):
         if message_object.text:
-                card_find_list = None
-                full_info = False
-                if '!' in message_object.text:
-                    regex = '\!(.*?)\!'
-                    card_find_list = re.findall(regex, message_object.text)
-                if '?' in message_object.text:
-                    regex = '\?(.*?)\?'
-                    full_info = True
-                    card_find_list = re.findall(regex, message_object.text)
+            card_find_list = None
+            full_info = False
+            if '!' in message_object.text:
+                regex = '\!(.*?)\!'
+                card_find_list = re.findall(regex, message_object.text)
+            if '?' in message_object.text:
+                regex = '\?(.*?)\?'
+                full_info = True
+                card_find_list = re.findall(regex, message_object.text)
 
-                if card_find_list:
+            if card_find_list:
+                if card_find_list[0].lower() is 'help':
+                    self.send(Message(text='Use !card name! for card image \nUse ?card name? for image and legality\n'
+                                           'Use [3 char set code] for specific art'))
+                else:
                     for card_name in card_find_list:
                         card = None
                         if "[" in card_name:
