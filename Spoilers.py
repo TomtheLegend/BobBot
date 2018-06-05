@@ -21,7 +21,9 @@ def get_new_spoilers():
         lastList = d["spoilers"]
         sets = d["sets"]
 
-    #get spoilers sets and make the search query
+    #get spoilers sets and make the search query]
+    #todo for loop over the sets, have sets as seperate json dicts.
+    # have spoiler end dates and if it get to the date after then remove from list, post full spoiler list if ulr exists?
     query = ""
     for s in sets:
         if query is "":
@@ -62,8 +64,8 @@ def send_image(image, message):
     client = Client(cred_List["email"], cred_List["password"])
 
     # Will download the image at the url `<image url>`, and then send it
-    client.sendRemoteImage(image, message=Message(text=message),
-                           thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
+    # client.sendRemoteImage(image, message=Message(text=message),
+    #                        thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
 
     client.logout()
     timestamp_text = "{0} - {1}".format(datetime.datetime.today(), message)
