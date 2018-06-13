@@ -45,7 +45,7 @@ def get_new_spoilers():
                 continue
             # send the card to facebook
             card_text = "SPOILER ALERT  - {}".format(card['name'])
-            send_image(card['image_uris']['normal'].split("?")[0], card_text)
+            # send_image(card['image_uris']['normal'].split("?")[0], card_text)
             # send_image(card['image_uris']['normal'], card['name'])
 
         json_dict = {"spoilers": savelist,

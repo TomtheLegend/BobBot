@@ -31,9 +31,9 @@ class CardFetch(Client):
                 card_find_list = re.findall(regex, message_object.text)
 
             if card_find_list:
-                if card_find_list[0].lower() is 'help':
+                if card_find_list[0].lower() == 'help':
                     self.send(Message(text='Use !card name! for card image \nUse ?card name? for image and legality\n'
-                                           'Use [3 char set code] for specific art'))
+                                           'Use [3 char set code] for specific art'), thread_id=thread_id, thread_type=thread_type)
                 else:
                     for card_name in card_find_list:
                         card = None
@@ -46,25 +46,43 @@ class CardFetch(Client):
                                 if set_code[1]:
                                     print(set_code[1])
                                     if len(set_code[1]) == 3:
-                                        card = scrython.cards.Named(fuzzy=set_code[0], set=set_code[1])
+                                        card = self.card_search(set_code[0], set_code[1])
+                                            #scrython.cards.Named(fuzzy=set_code[0], set=set_code[1])
                                     else:
                                         print('not a code')
                                         # for set_name in scrython.Sets.name(set_code[1]):
                                         #     print(set_name)
                             except IndexError:
-                                card = scrython.cards.Named(fuzzy=card_name)
+                                card = self.card_search(card_name)
+                                    # scrython.cards.Named(fuzzy=card_name)
                         else:
-                            card = scrython.cards.Named(fuzzy=card_name)
+                            card = self.card_search(card_name)
                         # card = card.total_cards()
-                        card_text = ""
-                        if full_info:
-                            card_text = ''.join('{0}- {1}\n'.format(key, val)
-                                                for key, val in card.legalities().items())
+                        print(type(card))
+                        if type(card) is Exception:
+                            self.send(Message(text=str(card)), thread_id=thread_id, thread_type=thread_type)
+                        else:
+                            card_text = ""
+                            if full_info:
+                                card_text = ''.join('{0}- {1}\n'.format(key, val)
+                                                    for key, val in card.legalities().items())
 
-                        card_image = card.image_uris()['normal'].split("?")[0]
-                        self.sendRemoteImage(card_image, message=Message(text=card_text),
-                                             thread_id=thread_id, thread_type=thread_type)
+                            card_image = card.image_uris()['normal'].split("?")[0]
+                            self.sendRemoteImage(card_image, message=Message(text=card_text),
+                                                 thread_id=thread_id, thread_type=thread_type)
 
+
+
+    def card_search(self, card_name, set_code=None):
+        try:
+            if set_code:
+                card = scrython.cards.Named(fuzzy=card_name, set=set_code)
+            else:
+                card = scrython.cards.Named(fuzzy=card_name)
+            return card
+        except Exception as err:
+            # print(err)
+            return err
 
 
     def prank_only_set_card(self, card_name,  author_id, message_object, thread_id, thread_type):
