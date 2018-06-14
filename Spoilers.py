@@ -64,8 +64,8 @@ def send_image(image, message):
     client = Client(cred_List["email"], cred_List["password"])
 
     # Will download the image at the url `<image url>`, and then send it
-    # client.sendRemoteImage(image, message=Message(text=message),
-    #                        thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
+    client.sendRemoteImage(image, message=Message(text=message),
+                           thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
 
     client.logout()
     timestamp_text = "{0} - {1}".format(datetime.datetime.today(), message)
