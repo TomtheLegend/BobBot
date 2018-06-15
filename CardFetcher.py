@@ -22,12 +22,17 @@ class CardFetch(Client):
         if message_object.text:
             card_find_list = None
             full_info = False
+            card_price = False
             if '!' in message_object.text:
                 regex = '\!(.*?)\!'
                 card_find_list = re.findall(regex, message_object.text)
-            if '?' in message_object.text:
+            elif '?' in message_object.text:
                 regex = '\?(.*?)\?'
                 full_info = True
+                card_find_list = re.findall(regex, message_object.text)
+            elif '$' in message_object.text:
+                regex = '\$(.*?)\$'
+                card_price = True
                 card_find_list = re.findall(regex, message_object.text)
 
             if card_find_list:
@@ -66,10 +71,16 @@ class CardFetch(Client):
                             if full_info:
                                 card_text = ''.join('{0}- {1}\n'.format(key, val)
                                                     for key, val in card.legalities().items())
-
-                            card_image = card.image_uris()['normal'].split("?")[0]
-                            self.sendRemoteImage(card_image, message=Message(text=card_text),
-                                                 thread_id=thread_id, thread_type=thread_type)
+                            if card_price:
+                                card_text = card.name()
+                                card_text += " - " + card.set_name()
+                                card_text += " - $" + card.currency("usd")
+                                print(card_text)
+                                self.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
+                            else:
+                                card_image = card.image_uris()['normal'].split("?")[0]
+                                self.sendRemoteImage(card_image, message=Message(text=card_text),
+                                                     thread_id=thread_id, thread_type=thread_type)
 
 
 
