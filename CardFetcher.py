@@ -65,7 +65,10 @@ class CardFetch(Client):
                         # card = card.total_cards()
                         print(type(card))
                         if type(card) is Exception:
-                            self.send(Message(text=str(card)), thread_id=thread_id, thread_type=thread_type)
+                            if thread_id != '187068898324185':
+                                self.send(Message(text=str(card)), thread_id=thread_id, thread_type=thread_type)
+                        elif card == "None":
+                            pass
                         else:
                             card_text = ""
                             if full_info:
@@ -92,7 +95,6 @@ class CardFetch(Client):
                 card = scrython.cards.Named(fuzzy=card_name)
             return card
         except Exception as err:
-            # print(err)
             return err
 
 
