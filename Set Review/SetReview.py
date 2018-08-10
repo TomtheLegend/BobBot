@@ -2,9 +2,16 @@ __author__ = 'tomli'
 
 import scrython
 import tkinter as tk
+import json
 
 class GUI:
     def __init__(self, master):
+        #import from json
+        with open('review.json', 'r') as json_data:
+            d = json.load(json_data)
+            self.set = d["set"]
+            self.types = d["types"]
+
         # first rame
         self.master = master
         self.master.minsize(width=300, height=300)
@@ -23,7 +30,7 @@ class GUI:
         self.frame2_title = tk.Label(self.frame2, text='Types')
 
         self.listbox = tk.Listbox(self.frame2, selectmode=tk.SINGLE)
-        self.types = ["wizard", "knight", "artifact", "historic", "enchantment", "legendary"]
+        # self.types = ["wizard", "knight", "artifact", "historic", "enchantment", "legendary"]
         for a in self.types:
             self.listbox.insert(tk.END, a)
 
@@ -46,9 +53,9 @@ class GUI:
         selection = self.types[self.listbox.curselection()[0]]
         all = 0
         if selection is "historic":
-            command = "e:dom is:{0}".format(selection)
+            command = "e:{0} is:{1}".format(self.set, selection)
         else:
-            command = "e:dom type:{}".format(selection)
+            command = "e:{0} type:{1}".format(self.set, selection)
         try:
             all_type = scrython.cards.Search(q=command)
             all = all_type.total_cards()
@@ -57,9 +64,9 @@ class GUI:
 
         for t in ["common", "uncommon", "rare", "mythic"]:
             if selection is "historic":
-                command = "e:dom is:{0} rarity:{1}".format(selection, t)
+                command = "e:{0} is:{1} rarity:{2}".format(self.set, selection, t)
             else:
-                command = "e:dom type:{0} rarity:{1}".format(selection, t)
+                command = "e:{0} type:{1} rarity:{2}".format(self.set, selection, t)
             try:
                 all_type = scrython.cards.Search(q=command)
                 type_all_array.append(all_type.total_cards())

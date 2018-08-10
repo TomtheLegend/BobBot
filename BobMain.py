@@ -1,5 +1,7 @@
 __author__ = 'tomli'
 
+__author__ = 'tomli'
+
 
 from fbchat import log, Client
 from fbchat.models import *
@@ -7,6 +9,7 @@ import scrython
 import re
 import datetime
 import json
+import random
 
 
 # Subclass fbchat.Client and override required methods
@@ -18,8 +21,10 @@ class CardFetch(Client):
         if author_id != self.uid:
             self.local_get_card(author_id, message_object, thread_id, thread_type)
 
+
     def local_get_card(self, author_id, message_object, thread_id, thread_type):
         if message_object.text:
+            # begin text check
             card_find_list = None
             full_info = False
             card_price = False
@@ -36,10 +41,8 @@ class CardFetch(Client):
                 card_find_list = re.findall(regex, message_object.text)
 
             if card_find_list:
-                if card_find_list[0].lower() == 'help':
-                    self.send(Message(text='Use !card name! for card image \nUse ?card name? for image and legality\n'
-                                           'Use [3 char set code] for specific art'), thread_id=thread_id, thread_type=thread_type)
-                else:
+
+                if self.alt_text_check(card_find_list, author_id, message_object, thread_id, thread_type):
                     for card_name in card_find_list:
                         card = None
                         if "[" in card_name:
@@ -80,19 +83,40 @@ class CardFetch(Client):
                                 print(card_text)
                                 self.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
                             else:
-                                if card['layout'] == 'normal':
-                                    self.sendRemoteImage(card['image_uris']['normal'].split("?")[0], card_text)
-
+                                if card.layout() == 'normal':
+                                    self.sendRemoteImage(card.image_uris()['normal'].split("?")[0], message=card_text,
+                                                         thread_id=thread_id, thread_type=thread_type)
                                 else:
                                     #transform cards
-                                    if card.layout == 'transform':
-                                        for face in card['card_faces']:
-                                            self.sendRemoteImage(face['image_uris']['normal'].split("?")[0], message=Message(text=card_text),
-                                                     thread_id=thread_id, thread_type=thread_type)
-                                card_image = card.image_uris()['normal'].split("?")[0]
-                                self.sendRemoteImage(card_image, message=Message(text=card_text),
-                                                     thread_id=thread_id, thread_type=thread_type)
+                                    if card.layout() == 'transform':
+                                        for face in card.card_faces():
+                                            self.sendRemoteImage(face["image_uris"]['normal'].split("?")[0], message=card_text,
+                                                                 thread_id=thread_id, thread_type=thread_type)
 
+
+
+    def alt_text_check(self,card_find_list, author_id, message_object, thread_id, thread_type):
+        if card_find_list[0].lower() == 'help':
+            self.send(Message(text='Use !card name! for card image \nUse ?card name? for image and legality\n'
+                                           'Use [3 char set code] for specific art'), thread_id=thread_id, thread_type=thread_type)
+            return False
+
+        if card_find_list[0].lower() == 'treasure':
+            search = scrython.cards.Search(q="++is:token set:txln")
+            token_list = search.data()
+            token_list_len = len(token_list)-1
+            chosen_token = random.randint(0, token_list_len)
+            card_text = 'wait, thats not right'
+            card = token_list[chosen_token]
+            if card['name'].lower() == 'treasure':
+                card_text = 'We found the Loot'
+
+            self.sendRemoteImage(card['image_uris']['normal'].split("?")[0], message=Message(text='Searching Ixalan for Treasure...'),
+                                                     thread_id=thread_id, thread_type=thread_type)
+            self.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
+            return False
+
+        return True
 
 
     def card_search(self, card_name, set_code=None):
@@ -101,7 +125,7 @@ class CardFetch(Client):
                 card = scrython.cards.Named(fuzzy=card_name, set=set_code)
             else:
                 card = scrython.cards.Named(fuzzy=card_name)
-            print(card.name())
+            return card
         except Exception as err:
             return err
 
