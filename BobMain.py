@@ -83,7 +83,7 @@ class CardFetch(Client):
                                 print(card_text)
                                 self.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
                             else:
-                                if card.layout() == 'normal':
+                                if card.layout() == 'normal' or 'split':
                                     self.sendRemoteImage(card.image_uris()['normal'].split("?")[0], message=card_text,
                                                          thread_id=thread_id, thread_type=thread_type)
                                 else:

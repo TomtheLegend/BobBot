@@ -45,8 +45,7 @@ def get_new_spoilers():
                 continue
             # send the card to facebook
             card_text = "SPOILER ALERT  - {}".format(card['name'])
-            print(card)
-            if card['layout'] == 'normal':
+            if card['layout'] == 'normal' or 'split':
                 send_image(card['image_uris']['normal'].split("?")[0], card_text)
             else:
                 #transform cards
@@ -92,11 +91,12 @@ def send_text(card):
 
     card_message = "{}\n{}".format(card['name'], card['oracle_text'])
 
-    print(card_message)
-
-    # client.send(Message(text=card_message), thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
+    client.send(Message(text=card_message), thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
 
 while True:
-    get_new_spoilers()
+    # '2018-09-21 09:00:00.00'
+    if datetime.datetime.now() < datetime.datetime.strptime("21 Sep 18", "%d %b %y"):
+        get_new_spoilers()
+
     time.sleep(300)
 
