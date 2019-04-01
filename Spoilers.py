@@ -52,14 +52,20 @@ def get_new_spoilers():
                         for face in card['card_faces']:
                             send_list.append([card['name'], face['image_uris']['normal'].split("?")[0]])
 
+        split_send_list = split_list(send_list, 10)
 
-        send_image(send_list)
+        for chunk_list in split_send_list:
+            send_image(send_list)
+            time.sleep(10)
 
         json_dict = {"spoilers": savelist,
                      "sets": sets}
         with open('Spoilers.json', 'w') as json_in:
             json.dump(json_dict, json_in)
 
+
+def split_list(seq, size):
+    return (seq[i::size] for i in range(size))
 
 def send_image(send_list):
     thread_type = ThreadType.GROUP
@@ -77,7 +83,7 @@ def send_image(send_list):
                                thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
 
     client.logout()
-    timestamp_text = "{0} - {1}".format(datetime.datetime.today(), message)
+    timestamp_text = "{0}".format(datetime.datetime.today())
     print(timestamp_text)
 
 
