@@ -38,21 +38,22 @@ def get_new_spoilers():
      #If the total cards has increased
     if spoilers.total_cards() > len(lastList):
 
+        send_list = []
         #Iterate through data
         for card in reversed(spoilers.data()):
             savelist.append(card['name'])
-            if card['name'] in lastList:
-                continue
-            # send the card to facebook
-            card_text = "SPOILER ALERT  - {}".format(card['name'])
-            if card['layout'] == 'normal' or 'split':
-                send_image(card['image_uris']['normal'].split("?")[0], card_text)
-            else:
-                #transform cards
-                if card['layout'] == 'transform':
-                    for face in card['card_faces']:
-                        send_image(face['image_uris']['normal'].split("?")[0], card_text)
-            # send_image(card['image_uris']['normal'], card['name'])
+            if card['name'] not in lastList:
+                #add new cards to a list to send
+                if card['layout'] == 'normal' or 'split':
+                    send_list.append([card['name'], card['image_uris']['normal'].split("?")[0]])
+                else:
+                    #transform cards
+                    if card['layout'] == 'transform':
+                        for face in card['card_faces']:
+                            send_list.append([card['name'], face['image_uris']['normal'].split("?")[0]])
+
+
+        send_image(send_list)
 
         json_dict = {"spoilers": savelist,
                      "sets": sets}
@@ -60,7 +61,7 @@ def get_new_spoilers():
             json.dump(json_dict, json_in)
 
 
-def send_image(image, message):
+def send_image(send_list):
     thread_type = ThreadType.GROUP
 
     with open('Settings.json', 'r') as json_data:
@@ -69,11 +70,11 @@ def send_image(image, message):
 
     client = Client(cred_List["email"], cred_List["password"])
 
-    print(image)
-
-    # Will download the image at the url `<image url>`, and then send it
-    client.sendRemoteImage(image, message=Message(text=message),
-                           thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
+    for new_card in send_list:
+        message = "SPOILER ALERT  - " + new_card[0]
+        # Will download the image at the url `<image url>`, and then send it
+        client.sendRemoteImage(new_card[1], message=Message(text=message),
+                               thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
 
     client.logout()
     timestamp_text = "{0} - {1}".format(datetime.datetime.today(), message)
@@ -93,10 +94,48 @@ def send_text(card):
 
     client.send(Message(text=card_message), thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
 
+
+def send_local_image(image, message):
+    thread_type = ThreadType.GROUP
+
+    with open('Settings.json', 'r') as json_data:
+        d = json.load(json_data)
+        cred_List = d["credentials"]
+
+    client = Client(cred_List["email"], cred_List["password"])
+    print(client.uid)
+
+    # Will download the image at the url `<image url>`, and then send it
+    client.sendLocalImage(image, message=Message(text=message),
+                           thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
+
+    client.logout()
+    timestamp_text = "{0} - {1}".format(datetime.datetime.today(), message)
+    print(timestamp_text)
+
+
+
+
+
+def april_fool():
+    file_loc = 'D:/Programming/april fools/'
+    fool_list = [['Urza\'s Tower', 'Urza\'s Tower.png'],
+                 ['Unite the Gatewatch', 'Unite the Gatewatch.png'],
+                 ['Colossal Dreadmaw', 'Colossal Dreadmaw.png']]
+
+    for fool in fool_list:
+
+        image_loc = file_loc + fool[1]
+        print (image_loc)
+
+        send_local_image(image_loc, "SPOILER ALERT  - " + fool[0])
+
+        time.sleep(100)
+
+
 while True:
     # '2018-09-21 09:00:00.00'
-    if datetime.datetime.now() < datetime.datetime.strptime("21 Sep 18", "%d %b %y"):
+    if datetime.datetime.now() < datetime.datetime.strptime("19 Apr 19", "%d %b %y"):
         get_new_spoilers()
 
     time.sleep(300)
-

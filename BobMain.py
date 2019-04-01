@@ -55,14 +55,14 @@ class CardFetch(Client):
                                     print(set_code[1])
                                     if len(set_code[1]) == 3:
                                         card = self.card_search(set_code[0], set_code[1])
-                                            #scrython.cards.Named(fuzzy=set_code[0], set=set_code[1])
+                                        #scrython.cards.Named(fuzzy=set_code[0], set=set_code[1])
                                     else:
                                         print('not a code')
                                         # for set_name in scrython.Sets.name(set_code[1]):
                                         #     print(set_name)
                             except IndexError:
                                 card = self.card_search(card_name)
-                                    # scrython.cards.Named(fuzzy=card_name)
+                                # scrython.cards.Named(fuzzy=card_name)
                         else:
                             card = self.card_search(card_name)
                         # card = card.total_cards()
@@ -97,8 +97,14 @@ class CardFetch(Client):
 
     def alt_text_check(self,card_find_list, author_id, message_object, thread_id, thread_type):
         if card_find_list[0].lower() == 'help':
-            self.send(Message(text='Use !card name! for card image \nUse ?card name? for image and legality\n'
-                                           'Use [3 char set code] for specific art'), thread_id=thread_id, thread_type=thread_type)
+            self.send(Message(text='Use !card name! for card image, shows most recent printing \n'
+                                   'Use ?card name? for image and format legality\n'
+                                   'Use $ for price for the card in dollars\n'
+                                   'Use [3 char set code] for specific art/set\n'
+                                   'examples:\n'
+                                   '?dark confident?\n'
+                                   '!dark confident[rav]!\n'
+                                   '$dark confident[rav]$'), thread_id=thread_id, thread_type=thread_type)
             return False
 
         if card_find_list[0].lower() == 'treasure':
