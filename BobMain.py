@@ -92,7 +92,7 @@ class CardFetch(Client):
                                     #transform cards
                                     if card.layout() == 'transform':
                                         for face in card.card_faces():
-                                            print(face)
+                                            #  print(face)
                                             self.sendRemoteImage(face["image_uris"]['normal'].split("?")[0], message=card_text,
                                                                  thread_id=thread_id, thread_type=thread_type)
 

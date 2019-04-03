@@ -51,10 +51,8 @@ def get_new_spoilers():
                     if card['layout'] == 'transform':
                         for face in card['card_faces']:
                             send_list.append([card['name'], face['image_uris']['normal'].split("?")[0]])
-        if len(send_list) > 20:
-            split_send_list = [send_list[x:x+10] for x in range(0, len(send_list), 10)]
-        else:
-            split_send_list = send_list
+
+        split_send_list = [send_list[x:x+10] for x in range(0, len(send_list), 10)]
 
         for chunk_list in split_send_list:
             send_image(chunk_list)
@@ -80,8 +78,8 @@ def send_image(send_list):
             message = "SPOILER ALERT  - " + new_card[0]
             print(new_card[0])
             # Will download the image at the url `<image url>`, and then send it
-            # client.sendRemoteImage(new_card[1], message=Message(text=message),
-            #                        thread_id=fb_group, thread_type=thread_type)
+            client.sendRemoteImage(new_card[1], message=Message(text=message),
+                                   thread_id=fb_group, thread_type=thread_type)
 
     client.logout()
     timestamp_text = "{0}".format(datetime.datetime.today())
