@@ -51,21 +51,20 @@ def get_new_spoilers():
                     if card['layout'] == 'transform':
                         for face in card['card_faces']:
                             send_list.append([card['name'], face['image_uris']['normal'].split("?")[0]])
-
-        split_send_list = split_list(send_list, 10)
+        if len(send_list) > 20:
+            split_send_list = [send_list[x:x+10] for x in range(0, len(send_list), 10)]
+        else:
+            split_send_list = send_list
 
         for chunk_list in split_send_list:
-            send_image(send_list)
+            send_image(chunk_list)
             time.sleep(10)
 
         json_dict = {"spoilers": savelist,
                      "sets": sets}
         with open('Spoilers.json', 'w') as json_in:
             json.dump(json_dict, json_in)
-
-
-def split_list(seq, size):
-    return (seq[i::size] for i in range(size))
+        print("Spoilers checked")
 
 def send_image(send_list):
     thread_type = ThreadType.GROUP
@@ -76,11 +75,13 @@ def send_image(send_list):
 
     client = Client(cred_List["email"], cred_List["password"])
 
-    for new_card in send_list:
-        message = "SPOILER ALERT  - " + new_card[0]
-        # Will download the image at the url `<image url>`, and then send it
-        client.sendRemoteImage(new_card[1], message=Message(text=message),
-                               thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
+    for fb_group in cred_List["spoiler_thread"]:
+        for new_card in send_list:
+            message = "SPOILER ALERT  - " + new_card[0]
+            print(new_card[0])
+            # Will download the image at the url `<image url>`, and then send it
+            # client.sendRemoteImage(new_card[1], message=Message(text=message),
+            #                        thread_id=fb_group, thread_type=thread_type)
 
     client.logout()
     timestamp_text = "{0}".format(datetime.datetime.today())

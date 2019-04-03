@@ -1,6 +1,6 @@
-__author__ = 'tomli'
+__author__ = 'tom lievesley'
 
-__author__ = 'tomli'
+__author__ = 'tom lievesley'
 
 
 from fbchat import log, Client
@@ -83,13 +83,16 @@ class CardFetch(Client):
                                 print(card_text)
                                 self.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
                             else:
-                                if card.layout() == 'normal' or 'split':
+                                # send card image with text
+                                # check for card type to show all relavent images.
+                                if card.layout() == 'normal' or card.layout() == 'split':
                                     self.sendRemoteImage(card.image_uris()['normal'].split("?")[0], message=card_text,
                                                          thread_id=thread_id, thread_type=thread_type)
                                 else:
                                     #transform cards
                                     if card.layout() == 'transform':
                                         for face in card.card_faces():
+                                            print(face)
                                             self.sendRemoteImage(face["image_uris"]['normal'].split("?")[0], message=card_text,
                                                                  thread_id=thread_id, thread_type=thread_type)
 
