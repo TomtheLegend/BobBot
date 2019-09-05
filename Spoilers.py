@@ -9,7 +9,7 @@ import time
 import datetime
 
 
-def get_new_spoilers():
+def get_new_spoilers(client):
     lastList = []
     currentList = []
     savelist = []
@@ -55,8 +55,8 @@ def get_new_spoilers():
         split_send_list = [send_list[x:x+10] for x in range(0, len(send_list), 10)]
 
         for chunk_list in split_send_list:
-            send_image(chunk_list)
-            time.sleep(10)
+            send_image(client, chunk_list)
+            time.sleep(5)
 
         json_dict = {"spoilers": savelist,
                      "sets": sets}
@@ -64,24 +64,28 @@ def get_new_spoilers():
             json.dump(json_dict, json_in)
         print("Spoilers checked")
 
-def send_image(send_list):
-    thread_type = ThreadType.GROUP
+def send_image(client, send_list):
 
-    with open('Settings.json', 'r') as json_data:
-        d = json.load(json_data)
-        cred_List = d["credentials"]
+    with open('ThreadConfigs.json', 'r+') as json_data:
+                config = json.load(json_data)
 
-    client = Client(cred_List["email"], cred_List["password"])
+    for threadid, data in config.items():
+        if data['show_spoilers']:
+            #try:
+                _thread = client.fetchThreadInfo(threadid)
+                if _thread:
+                    _threadtype = _thread[threadid].type
+                    for new_card in send_list:
+                        message = "SPOILER ALERT  - " + new_card[0]
+                        print(new_card[0])
+                        # Will download the image at the url `<image url>`, and then send it
+                        # client.sendRemoteImage(new_card[1], message=Message(text=message),
+                        #                        thread_id=threadid, thread_type=_threadtype)
 
-    for fb_group in cred_List["spoiler_thread"]:
-        for new_card in send_list:
-            message = "SPOILER ALERT  - " + new_card[0]
-            print(new_card[0])
-            # Will download the image at the url `<image url>`, and then send it
-            client.sendRemoteImage(new_card[1], message=Message(text=message),
-                                   thread_id=fb_group, thread_type=thread_type)
-
-    client.logout()
+                        client.sendRemoteFiles(new_card[1], message=Message(text=message),
+                                               thread_id=threadid, thread_type=_threadtype)
+            # except:
+            #     pass
     timestamp_text = "{0}".format(datetime.datetime.today())
     print(timestamp_text)
 
@@ -100,47 +104,33 @@ def send_text(card):
     client.send(Message(text=card_message), thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
 
 
-def send_local_image(image, message):
-    thread_type = ThreadType.GROUP
+
+if __name__ == '__main__':
 
     with open('Settings.json', 'r') as json_data:
         d = json.load(json_data)
         cred_List = d["credentials"]
 
-    client = Client(cred_List["email"], cred_List["password"])
-    print(client.uid)
+    cookies = {}
+    try:
+        # Load the session cookies
+        with open('spoilersession.json', 'r') as f:
+            cookies = json.load(f)
+    except:
+        # If it fails, never mind, we'll just login again
+        pass
 
-    # Will download the image at the url `<image url>`, and then send it
-    client.sendLocalImage(image, message=Message(text=message),
-                           thread_id=cred_List["spoiler_thread"], thread_type=thread_type)
+    client = Client(cred_List["email"], cred_List["password"],  session_cookies=cookies)
+    #client = CardFetch(cred_List["email"], cred_List["password"],  session_cookies=cookies, logging_level=logging.DEBUG)
 
-    client.logout()
-    timestamp_text = "{0} - {1}".format(datetime.datetime.today(), message)
-    print(timestamp_text)
+    # Save the session again
+    with open('spoilersession.json', 'w') as f:
+        json.dump(client.getSession(), f)
 
+    while True:
 
+        # '2018-09-21 09:00:00.00'
+        #if datetime.datetime.now() < datetime.datetime.strptime("19 Apr 19", "%d %b %y"):
+        get_new_spoilers(client)
 
-
-
-def april_fool():
-    file_loc = 'D:/Programming/april fools/'
-    fool_list = [['Urza\'s Tower', 'Urza\'s Tower.png'],
-                 ['Unite the Gatewatch', 'Unite the Gatewatch.png'],
-                 ['Colossal Dreadmaw', 'Colossal Dreadmaw.png']]
-
-    for fool in fool_list:
-
-        image_loc = file_loc + fool[1]
-        print (image_loc)
-
-        send_local_image(image_loc, "SPOILER ALERT  - " + fool[0])
-
-        time.sleep(100)
-
-
-while True:
-    # '2018-09-21 09:00:00.00'
-    if datetime.datetime.now() < datetime.datetime.strptime("19 Apr 19", "%d %b %y"):
-        get_new_spoilers()
-
-    time.sleep(300)
+        time.sleep(300)

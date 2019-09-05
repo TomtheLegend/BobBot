@@ -1,7 +1,5 @@
 __author__ = 'tom lievesley'
 
-__author__ = 'tom lievesley'
-
 
 from fbchat import log, Client
 from fbchat.models import *
@@ -10,145 +8,169 @@ import re
 import datetime
 import json
 import random
-
+import logging
+import actions
 
 # Subclass fbchat.Client and override required methods
 class CardFetch(Client):
+    def onReactionAdded(
+        self,
+        mid=None,
+        reaction=None,
+        author_id=None,
+        thread_id=None,
+        thread_type=None,
+        ts=None,
+        msg=None,
+    ):
+
+        print('reaction happened ' + mid)
+        message_emoted = self.fetchMessageInfo(mid, thread_id)
+        print(message_emoted)
+        if message_emoted.author ==self.uid:
+            if reaction == MessageReaction.WOW:
+                card_name = message_emoted.text.replace("SPOILER ALERT - ", "")
+                card_name = card_name.replace("SPOILER ALERT  - ", "")
+                print(card_name)
+                actions.get_card_oracle_text(self, card_name, thread_id, thread_type)
+
+    def onMessageSeen(self, **kwargs):
+        pass
+
     def onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
         self.markAsDelivered(author_id, thread_id)
-        self.markAsRead(author_id)
+       #self.markAsRead(thread_id)
+
+        print(message_object.uid)
+        print(message_object.text)
 
         if author_id != self.uid:
-            self.local_get_card(author_id, message_object, thread_id, thread_type)
+            actions.local_get_card(self, author_id, message_object, thread_id, thread_type)
+
+    def onPeopleAdded(
+        self,
+        mid=None,
+        added_ids=None,
+        author_id=None,
+        thread_id=None,
+        ts=None,
+        msg=None
+        ):
+        """
+        When a new person is added to a chat, show them a welcome message and show help.
+        """
+        thread_info = self.fetchThreadInfo(thread_id)
+        actions.alt_text_check(client, ['help'], thread_id, thread_info.thread_type)
 
 
-    def local_get_card(self, author_id, message_object, thread_id, thread_type):
-        if message_object.text:
-            # begin text check
-            card_find_list = None
-            full_info = False
-            card_price = False
-            if '!' in message_object.text:
-                regex = '\!(.*?)\!'
-                card_find_list = re.findall(regex, message_object.text)
-            elif '?' in message_object.text:
-                regex = '\?(.*?)\?'
-                full_info = True
-                card_find_list = re.findall(regex, message_object.text)
-            elif '$' in message_object.text:
-                regex = '\$(.*?)\$'
-                card_price = True
-                card_find_list = re.findall(regex, message_object.text)
+    def onEmojiChange(
+        self,
+        mid=None,
+        author_id=None,
+        new_emoji=None,
+        thread_id=None,
+        thread_type=ThreadType.USER,
+        ts=None,
+        metadata=None,
+        msg=None,
+    ):
+        if author_id != self.uid:
+            with open('ThreadConfigs.json', 'r+') as json_data:
+                config = json.load(json_data)
 
-            if card_find_list:
+            if thread_id in config:
+                if config[thread_id]['emoji_change_allowed'] is False:
+                    print(config[thread_id]['emoji'])
+                    self.changeThreadEmoji(config[thread_id]['emoji'], thread_id)
 
-                if self.alt_text_check(card_find_list, author_id, message_object, thread_id, thread_type):
-                    for card_name in card_find_list:
-                        card = None
-                        if "[" in card_name:
-                            try:
-                                regex = '(.*?)\[(.*?)\]'
-                                set_code = re.findall(regex, card_name)
-                                set_code = set_code[0]
-                                print(str(set_code))
-                                if set_code[1]:
-                                    print(set_code[1])
-                                    if len(set_code[1]) == 3:
-                                        card = self.card_search(set_code[0], set_code[1])
-                                        #scrython.cards.Named(fuzzy=set_code[0], set=set_code[1])
-                                    else:
-                                        print('not a code')
-                                        # for set_name in scrython.Sets.name(set_code[1]):
-                                        #     print(set_name)
-                            except IndexError:
-                                card = self.card_search(card_name)
-                                # scrython.cards.Named(fuzzy=card_name)
-                        else:
-                            card = self.card_search(card_name)
-                        # card = card.total_cards()
-                        if type(card) is Exception:
-                            if thread_id != '187068898324185':
-                                self.send(Message(text=str(card)), thread_id=thread_id, thread_type=thread_type)
-                        elif card == "None":
-                            pass
-                        else:
-                            card_text = ""
-                            if full_info:
-                                card_text = ''.join('{0}- {1}\n'.format(key, val)
-                                                    for key, val in card.legalities().items())
-                            if card_price:
-                                card_text = card.name()
-                                card_text += " - " + card.set_name()
-                                card_text += " - $" + card.currency("usd")
-                                print(card_text)
-                                self.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
-                            else:
-                                # send card image with text
-                                # check for card type to show all relavent images.
-                                if card.layout() == 'normal' or card.layout() == 'split':
-                                    self.sendRemoteImage(card.image_uris()['normal'].split("?")[0], message=card_text,
-                                                         thread_id=thread_id, thread_type=thread_type)
-                                else:
-                                    #transform cards
-                                    if card.layout() == 'transform':
-                                        for face in card.card_faces():
-                                            #  print(face)
-                                            self.sendRemoteImage(face["image_uris"]['normal'].split("?")[0], message=card_text,
-                                                                 thread_id=thread_id, thread_type=thread_type)
+    def onNicknameChange(
+        self,
+        mid=None,
+        author_id=None,
+        changed_for=None,
+        new_nickname=None,
+        thread_id=None,
+        thread_type=ThreadType.USER,
+        ts=None,
+        metadata=None,
+        msg=None,
+    ):
+        if author_id != self.uid:
+            with open('ThreadConfigs.json', 'r+') as json_data:
+                config = json.load(json_data)
+
+            if thread_id in config:
+                if config[thread_id]['nicknames'] is 'boxer':
+                    user_to_update = self.fetchUserInfo(changed_for)
+                    new_nick = '{} \"{}\" {}'.format(user_to_update.first_name,
+                                                     new_nickname,
+                                                     user_to_update.last_name)
+                    self.changeNickname(new_nick, changed_for, thread_id, thread_type)
+
+def message_all_threads(client, message):
+    threads = client.fetchThreadList()
+    for thread in threads:
+        print(thread)
+        #client.send(Message(text=message), thread_id=thread.uid, thread_type=thread.type)
 
 
+def all_threads_config(client):
+    with open('ThreadConfigs.json', 'r+') as json_data:
+        config = json.load(json_data)
 
-    def alt_text_check(self,card_find_list, author_id, message_object, thread_id, thread_type):
-        if card_find_list[0].lower() == 'help':
-            self.send(Message(text='Use !card name! for card image, shows most recent printing \n'
-                                   'Use ?card name? for image and format legality\n'
-                                   'Use $ for price for the card in dollars\n'
-                                   'Use [3 char set code] for specific art/set\n'
-                                   'examples:\n'
-                                   '?dark confident?\n'
-                                   '!dark confident[rav]!\n'
-                                   '$dark confident[rav]$'), thread_id=thread_id, thread_type=thread_type)
-            return False
+    new_config = {}
+    threads = client.fetchThreadList()
+    for thread in threads:
+        if thread.uid in config:
+            new_config[thread.uid] = config[thread.uid]
+        else:
+            new_config[thread.uid] = {
+                                        'thread_name': '',
+                                        'show_errors': False,
+                                        'emoji_change_allowed': True,
+                                        'emoji': None,
+                                        'nicknames': None,
+                                        'show_spoilers': False
+                                    }
+            new_config[thread.uid]['thread_name'] = thread.name
 
-        if card_find_list[0].lower() == 'treasure':
-            search = scrython.cards.Search(q="++is:token set:txln")
-            token_list = search.data()
-            token_list_len = len(token_list)-1
-            chosen_token = random.randint(0, token_list_len)
-            card_text = 'wait, thats not right'
-            card = token_list[chosen_token]
-            if card['name'].lower() == 'treasure':
-                card_text = 'We found the Loot'
-
-            self.sendRemoteImage(card['image_uris']['normal'].split("?")[0], message=Message(text='Searching Ixalan for Treasure...'),
-                                                     thread_id=thread_id, thread_type=thread_type)
-            self.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
-            return False
-
-        return True
+    with open('ThreadConfigs.json', 'w') as save:
+        json.dump(new_config, save, indent=4)
 
 
-    def card_search(self, card_name, set_code=None):
-        try:
-            if set_code:
-                card = scrython.cards.Named(fuzzy=card_name, set=set_code)
-            else:
-                card = scrython.cards.Named(fuzzy=card_name)
-            return card
-        except Exception as err:
-            return err
+if __name__ =='__main__':
+
+    with open('Settings.json', 'r') as json_data:
+        d = json.load(json_data)
+        cred_List = d["credentials"]
+
+    # use session cookies to ensure not locked out.
+    cookies = {}
+    try:
+        # Load the session cookies
+        with open('session.json', 'r') as f:
+            cookies = json.load(f)
+    except:
+        # If it fails, never mind, we'll just login again
+        pass
 
 
-    def prank_only_set_card(self, card_name,  author_id, message_object, thread_id, thread_type):
-        card = scrython.cards.Named(fuzzy=card_name)
-        card_image = card.image_uris()['normal'].split("?")[0]
-        self.sendRemoteImage(card_image, message=Message(text=''),
-                             thread_id=thread_id, thread_type=thread_type)
+    client = CardFetch(cred_List["email"], cred_List["password"],  session_cookies=cookies)
+    #client = CardFetch(cred_List["email"], cred_List["password"],  session_cookies=cookies, logging_level=logging.DEBUG)
+
+    all_threads_config(client)
+
+    # Save the session again
+    with open('session.json', 'w') as f:
+        json.dump(client.getSession(), f)
 
 
-with open('Settings.json', 'r') as json_data:
-    d = json.load(json_data)
-    cred_List = d["credentials"]
+    # message = 'Maintenance Alert: I will be going offline for maintenance, ' \
+    #           'another message will be posted when back online. ' \
+    #           'This is an automated message.'
+    # message_all_threads(client, message)
 
-client = CardFetch(cred_List["email"], cred_List["password"])
-client.listen()
+    # listen for messages etc.
+    client.listen()
+
+
