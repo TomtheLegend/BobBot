@@ -71,7 +71,7 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                             if card_price:
                                 #card_text = card.name()
                                 card_text += " - " + card.set_name()
-                                card_text += " - $" + card.prices("eur")
+                                card_text += " - $" + card.prices("usd")
                                 print(card_text)
                                 client.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
                             else:

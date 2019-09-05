@@ -24,9 +24,7 @@ class CardFetch(Client):
         msg=None,
     ):
 
-        print('reaction happened ' + mid)
         message_emoted = self.fetchMessageInfo(mid, thread_id)
-        print(message_emoted)
         if message_emoted.author ==self.uid:
             if reaction == MessageReaction.WOW:
                 card_name = message_emoted.text.replace("SPOILER ALERT - ", "")
@@ -40,9 +38,6 @@ class CardFetch(Client):
     def onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
         self.markAsDelivered(author_id, thread_id)
        #self.markAsRead(thread_id)
-
-        print(message_object.uid)
-        print(message_object.text)
 
         if author_id != self.uid:
             actions.local_get_card(self, author_id, message_object, thread_id, thread_type)
@@ -80,7 +75,7 @@ class CardFetch(Client):
 
             if thread_id in config:
                 if config[thread_id]['emoji_change_allowed'] is False:
-                    print(config[thread_id]['emoji'])
+                    #print(config[thread_id]['emoji'])
                     self.changeThreadEmoji(config[thread_id]['emoji'], thread_id)
 
     def onNicknameChange(
