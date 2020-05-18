@@ -3,16 +3,19 @@ import re
 from fbchat.models import Message
 import scrython
 import random, json
+import urllib.request
+from PIL import Image
+import upsidedown
+
+config = None
+with open('ThreadConfigs.json', 'r+') as json_data:
+    config = json.load(json_data)
 
 
 def local_get_card(client, author_id, message_object, thread_id, thread_type):
         # if the message object has text
 
         if message_object.text:
-
-            with open('ThreadConfigs.json', 'r+') as json_data:
-                config = json.load(json_data)
-
             # begin text check
             card_find_list = None
             full_info = False
@@ -47,7 +50,7 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                                     print(set_code[1])
                                     if len(set_code[1]) == 3:
                                         card = client.card_search(set_code[0], set_code[1])
-                                        #scrython.cards.Named(fuzzy=set_code[0], set=set_code[1])
+                                        # scrython.cards.Named(fuzzy=set_code[0], set=set_code[1])
                                     else:
                                         print('not a code')
                                         # for set_name in scrython.Sets.name(set_code[1]):
@@ -79,15 +82,21 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                                 # check for card type to show all relavent images.
                                 if card.layout() == 'normal' or card.layout() == 'split' \
                                         or card.layout() != 'transform':
-                                    client.sendRemoteImage(card.image_uris()['normal'].split("?")[0], message=card_text,
-                                                         thread_id=thread_id, thread_type=thread_type)
+                                    # card_image = card.image_uris()['normal'].split("?")[0]
+                                    card_image = flip_card(card.image_uris()['normal'].split("?")[0], client,
+                                                           message=card_text,
+                                                           thread_id=thread_id, thread_type=thread_type)
+                                    # client.sendRemoteImage(card_image, message=card_text,
+                                    #                        thread_id=thread_id, thread_type=thread_type)
                                 else:
-                                    #transform cards
+                                    # transform cards
                                     if card.layout() == 'transform':
                                         for face in card.card_faces():
-                                            #  print(face)
-                                            client.sendRemoteImage(face["image_uris"]['normal'].split("?")[0], message=card_text,
-                                                                 thread_id=thread_id, thread_type=thread_type)
+                                            # print(face)
+                                            card_image = face["image_uris"]['normal'].split("?")[0]
+                                            client.sendRemoteImage(card_image,
+                                                                   message=card_text,
+                                                                   thread_id=thread_id, thread_type=thread_type)
 
 
 def card_search(card_name, set_code=None):
@@ -110,6 +119,7 @@ def get_card_oracle_text(client, card_name, thread_id, thread_type):
         else:
             card_text = 'Oracle Text For {} :\n {}'.format(card.name(), card.oracle_text())
             client.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
+
 
 def alt_text_check(client, card_find_list, thread_id, thread_type):
     if card_find_list[0].lower() == 'help':
@@ -141,5 +151,25 @@ def alt_text_check(client, card_find_list, thread_id, thread_type):
 
     return True
 
+
 def nickname_boxer_setting():
     pass
+
+
+def flip_card(card_image_url, client, message, thread_id, thread_type):
+    # save it
+    urllib.request.urlretrieve(card_image_url, "local-filename.jpg")
+
+    # flip it
+    im = Image.open("local-filename.jpg")
+
+    im = im.rotate(180)
+
+    im.save("local-filename.jpg")
+
+    # flip text
+    message_mirror = upsidedown.transform(message)
+
+    client.sendLocalFiles("local-filename.jpg", message=message_mirror,
+                          thread_id=thread_id, thread_type=thread_type)
+    # im = np.flipud(plt.imread("local-filename.jpg"))

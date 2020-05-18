@@ -95,7 +95,7 @@ class CardFetch(Client):
                 config = json.load(json_data)
 
             if thread_id in config:
-                if config[thread_id]['nicknames'] is 'boxer':
+                if config[thread_id]['nicknames'] == 'boxer':
                     user_to_update = self.fetchUserInfo(changed_for)
                     new_nick = '{} \"{}\" {}'.format(user_to_update.first_name,
                                                      new_nickname,
@@ -140,22 +140,22 @@ if __name__ =='__main__':
         cred_List = d["credentials"]
 
     # use session cookies to ensure not locked out.
+
     cookies = {}
     try:
         # Load the session cookies
         with open('session.json', 'r') as f:
             cookies = json.load(f)
-    except:
+    except OSError:
         # If it fails, never mind, we'll just login again
         pass
 
-
     client = CardFetch(cred_List["email"], cred_List["password"],  session_cookies=cookies)
-    #client = CardFetch(cred_List["email"], cred_List["password"],  session_cookies=cookies, logging_level=logging.DEBUG)
+    # client = CardFetch(cred_List["email"], cred_List["password"],  session_cookies=cookies, logging_level=logging.DEBUG)
 
     all_threads_config(client)
-
-    # Save the session again
+    #
+    # # Save the session again
     with open('session.json', 'w') as f:
         json.dump(client.getSession(), f)
 
