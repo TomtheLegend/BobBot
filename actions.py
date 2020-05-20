@@ -8,8 +8,6 @@ from PIL import Image
 import upsidedown
 
 config = None
-with open('ThreadConfigs.json', 'r+') as json_data:
-    config = json.load(json_data)
 
 
 def local_get_card(client, author_id, message_object, thread_id, thread_type):
@@ -82,21 +80,28 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                                 # check for card type to show all relavent images.
                                 if card.layout() == 'normal' or card.layout() == 'split' \
                                         or card.layout() != 'transform':
-                                    # card_image = card.image_uris()['normal'].split("?")[0]
-                                    card_image = flip_card(card.image_uris()['normal'].split("?")[0], client,
-                                                           message=card_text,
-                                                           thread_id=thread_id, thread_type=thread_type)
-                                    # client.sendRemoteImage(card_image, message=card_text,
-                                    #                        thread_id=thread_id, thread_type=thread_type)
+                                    if config[thread_id]["april_fools"]:
+                                        flip_card(card.image_uris()['normal'].split("?")[0], client,
+                                                  message=card_text,
+                                                  thread_id=thread_id, thread_type=thread_type)
+                                    else:
+                                        card_image = card.image_uris()['normal'].split("?")[0]
+                                        client.sendRemoteFiles(card_image, message=card_text,
+                                                               thread_id=thread_id, thread_type=thread_type)
                                 else:
                                     # transform cards
                                     if card.layout() == 'transform':
                                         for face in card.card_faces():
                                             # print(face)
-                                            card_image = face["image_uris"]['normal'].split("?")[0]
-                                            client.sendRemoteImage(card_image,
-                                                                   message=card_text,
-                                                                   thread_id=thread_id, thread_type=thread_type)
+                                            if config[thread_id]["april_fools"]:
+                                                flip_card(face["image_uris"]['normal'].split("?")[0], client,
+                                                          message=card_text,
+                                                          thread_id=thread_id, thread_type=thread_type)
+                                            else:
+                                                card_image = face["image_uris"]['normal'].split("?")[0]
+                                                client.sendRemoteFiles(card_image, message=card_text,
+                                                                       thread_id=thread_id, thread_type=thread_type)
+
 
 
 def card_search(card_name, set_code=None):
@@ -159,17 +164,13 @@ def nickname_boxer_setting():
 def flip_card(card_image_url, client, message, thread_id, thread_type):
     # save it
     urllib.request.urlretrieve(card_image_url, "local-filename.jpg")
-
     # flip it
     im = Image.open("local-filename.jpg")
-
     im = im.rotate(180)
-
     im.save("local-filename.jpg")
-
     # flip text
     message_mirror = upsidedown.transform(message)
-
+    # send message
     client.sendLocalFiles("local-filename.jpg", message=message_mirror,
                           thread_id=thread_id, thread_type=thread_type)
-    # im = np.flipud(plt.imread("local-filename.jpg"))
+

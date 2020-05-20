@@ -110,9 +110,12 @@ def message_all_threads(client, message):
 
 
 def all_threads_config(client):
-    with open('ThreadConfigs.json', 'r+') as json_data:
-        config = json.load(json_data)
-
+    try:
+        with open('ThreadConfigs.json', 'r+') as json_data:
+            config = json.load(json_data)
+            actions.config = config
+    except FileNotFoundError:
+        config = []
     new_config = {}
     threads = client.fetchThreadList()
     for thread in threads:
@@ -125,7 +128,8 @@ def all_threads_config(client):
                                         'emoji_change_allowed': True,
                                         'emoji': None,
                                         'nicknames': None,
-                                        'show_spoilers': False
+                                        'show_spoilers': False,
+                                        'april_fools': False
                                     }
             new_config[thread.uid]['thread_name'] = thread.name
 
