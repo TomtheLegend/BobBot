@@ -57,7 +57,6 @@ class CardFetch(Client):
         thread_info = self.fetchThreadInfo(thread_id)
         actions.alt_text_check(client, ['help'], thread_id, thread_info.thread_type)
 
-
     def onEmojiChange(
         self,
         mid=None,
@@ -102,6 +101,7 @@ class CardFetch(Client):
                                                      user_to_update.last_name)
                     self.changeNickname(new_nick, changed_for, thread_id, thread_type)
 
+
 def message_all_threads(client, message):
     threads = client.fetchThreadList()
     for thread in threads:
@@ -138,11 +138,12 @@ def all_threads_config(client):
 
 
 if __name__ =='__main__':
-
-    with open('Settings.json', 'r') as json_data:
-        d = json.load(json_data)
-        cred_List = d["credentials"]
-
+    try:
+        with open('Settings.json', 'r') as json_data:
+            d = json.load(json_data)
+            cred_List = d["credentials"]
+    except OSError:
+        exit("Failed to load settings file.")
     # use session cookies to ensure not locked out.
 
     cookies = {}
