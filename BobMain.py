@@ -116,6 +116,7 @@ def all_threads_config(client):
             actions.config = config
     except FileNotFoundError:
         config = []
+
     new_config = {}
     threads = client.fetchThreadList()
     for thread in threads:
