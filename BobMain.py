@@ -144,7 +144,12 @@ if __name__ =='__main__':
             d = json.load(json_data)
             cred_List = d["credentials"]
     except OSError:
-        exit("Failed to load settings file.")
+        try:
+            with open('/run/secrets/Settings.json', 'r') as json_data:
+                d = json.load(json_data)
+                cred_List = d["credentials"]
+        except OSError:
+            exit("Failed to load settings file.")
     # use session cookies to ensure not locked out.
 
     cookies = {}
