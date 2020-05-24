@@ -7,10 +7,8 @@ WORKDIR /bobbot
 
 COPY . .
 
+RUN --mount=type=secret,id=Settings.json,dst=/bobbot
 # install requirements
 RUN pip install -r requirements.txt
-
-# to add secrets.
-
 
 CMD [ "python", "BobMain.py" ]
