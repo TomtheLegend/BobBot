@@ -8,7 +8,7 @@ WORKDIR /bobbot
 
 COPY . .
 
-RUN --mount=type=secret,id=Settings.json,dst=/bobbot
+RUN --mount=type=secret,id=Settings.json
 # install requirements
 RUN pip install -r requirements.txt
 
