@@ -7,6 +7,7 @@ import scrython
 import re
 import datetime
 import json
+from json import JSONDecodeError
 import random
 import logging
 import actions
@@ -145,12 +146,14 @@ if __name__ =='__main__':
             cred_List = d["credentials"]
     except OSError:
         try:
-            with open('/run/secrets/Settings', 'r') as json_data:
-                print(json_data)
+            with open('/run/secrets/Settings.json', 'r') as json_data:
                 d = json.load(json_data)
                 cred_List = d["credentials"]
         except OSError:
             exit("Failed to load settings file.")
+        except JSONDecodeError:
+            with open('/run/secrets/Settings.json', 'r') as json_data:
+                exit("Json Decode error - " + str(json_data))
     # use session cookies to ensure not locked out.
 
     cookies = {}
