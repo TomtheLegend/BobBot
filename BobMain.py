@@ -152,7 +152,7 @@ if __name__ =='__main__':
         except OSError:
             exit("Failed to load settings file.")
         except JSONDecodeError:
-            with open('/run/secrets/Settings.json', 'r') as json_data:
+            with open('/run/secrets/Settings', 'r') as json_data:
                 exit("Json Decode error - " + str(json_data))
     # use session cookies to ensure not locked out.
 
