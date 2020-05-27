@@ -3,14 +3,12 @@ __author__ = 'tom lievesley'
 
 from fbchat import log, Client
 from fbchat.models import *
-import scrython
-import re
-import datetime
+
 import json
 from json import JSONDecodeError
-import random
-import logging
+
 import actions
+from os import path
 
 # Subclass fbchat.Client and override required methods
 class CardFetch(Client):
@@ -152,8 +150,9 @@ if __name__ =='__main__':
         except OSError:
             exit("Failed to load settings file.")
         except JSONDecodeError:
+            path_exists = str(path.exists('/run/secrets/Settings'))
             with open('/run/secrets/Settings', 'r') as json_data:
-                exit("Json Decode error - " + str(json_data.read()))
+                exit("Json Decode error - " + str(json_data.read())) + path_exists
     # use session cookies to ensure not locked out.
 
     cookies = {}
