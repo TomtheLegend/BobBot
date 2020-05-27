@@ -152,7 +152,7 @@ if __name__ =='__main__':
         except JSONDecodeError:
             path_exists = str(path.exists('/run/secrets/Settings'))
             with open('/run/secrets/Settings', 'r') as json_data:
-                exit("Json Decode error - " + str(json_data.read())) + path_exists
+                exit("Json Decode error - " + str(json_data.read()) + path_exists)
     # use session cookies to ensure not locked out.
 
     cookies = {}
