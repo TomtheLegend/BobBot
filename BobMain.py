@@ -146,7 +146,7 @@ if __name__ =='__main__':
             cred_List = d["credentials"]
     except OSError:
         try:
-            with open('/run/secrets/Settings.json', 'r') as json_data:
+            with open('/run/secrets/Settings', 'r') as json_data:
                 d = json.load(json_data)
                 cred_List = d["credentials"]
         except OSError:
