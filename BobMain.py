@@ -151,7 +151,7 @@ if __name__ =='__main__':
             exit("Failed to load settings file.")
         except JSONDecodeError:
             path_exists = str(path.exists('/run/secrets/Settings'))
-            with open('/run/secrets/Settings', 'r') as json_data:
+            with open('/run/secrets/Settings', 'rb') as json_data:
                 exit("Json Decode error - " + str(json_data.read()) + path_exists)
     # use session cookies to ensure not locked out.
 
