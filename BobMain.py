@@ -144,15 +144,13 @@ if __name__ =='__main__':
             cred_List = d["credentials"]
     except OSError:
         try:
-            with open('/run/secrets/Settings', 'r') as json_data:
+            with open('/run/secrets/bobsettings', 'r') as json_data:
                 d = json.load(json_data)
                 cred_List = d["credentials"]
         except OSError:
             exit("Failed to load settings file.")
         except JSONDecodeError:
-            path_exists = str(path.exists('/run/secrets/Settings'))
-            with open('/run/secrets/Settings', 'rb') as json_data:
-                exit("Json Decode error - " + str(json_data.read()) + path_exists)
+            exit("Json failed to decode the settings file.")
     # use session cookies to ensure not locked out.
 
     cookies = {}
