@@ -70,7 +70,7 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                                 card_text = ''.join('{0}- {1}\n'.format(key, val)
                                                     for key, val in card.legalities().items())
                             if card_price:
-                                #card_text = card.name()
+                                # card_text = card.name()
                                 card_text += " - " + card.set_name()
                                 card_text += " - $" + card.prices("usd")
                                 print(card_text)
@@ -80,7 +80,7 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                                 # check for card type to show all relavent images.
                                 if card.layout() == 'normal' or card.layout() == 'split' \
                                         or card.layout() != 'transform':
-                                    if config[thread_id]["april_fools"]:
+                                    if config[thread_id]['april_fools']:
                                         flip_card(card.image_uris()['normal'].split("?")[0], client,
                                                   message=card_text,
                                                   thread_id=thread_id, thread_type=thread_type)
@@ -93,7 +93,7 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                                     if card.layout() == 'transform':
                                         for face in card.card_faces():
                                             # print(face)
-                                            if config[thread_id]["april_fools"]:
+                                            if config[thread_id]['april_fools']:
                                                 flip_card(face["image_uris"]['normal'].split("?")[0], client,
                                                           message=card_text,
                                                           thread_id=thread_id, thread_type=thread_type)
