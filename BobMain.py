@@ -113,7 +113,7 @@ def all_threads_config(client):
         with open('ThreadConfigs.json', 'r+') as json_data:
             config = json.load(json_data)
     except FileNotFoundError:
-        config = []
+        config = {}
 
     new_config = {}
     threads = client.fetchThreadList()
@@ -131,7 +131,7 @@ def all_threads_config(client):
                                         'april_fools': False
                                     }
             new_config[thread.uid]['thread_name'] = thread.name
-    actions.config = config
+    actions.config = new_config
     with open('ThreadConfigs.json', 'w') as save:
         json.dump(new_config, save, indent=4)
 

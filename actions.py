@@ -7,7 +7,7 @@ import urllib.request
 from PIL import Image
 import upsidedown
 
-config = None
+config = {}
 
 
 def local_get_card(client, author_id, message_object, thread_id, thread_type):
