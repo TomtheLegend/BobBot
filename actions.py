@@ -6,9 +6,11 @@ import random, json
 import urllib.request
 from PIL import Image
 import upsidedown
+from fbchat import ThreadType
+
 
 config = {}
-
+host = ''
 
 def local_get_card(client, author_id, message_object, thread_id, thread_type):
         # if the message object has text
@@ -34,8 +36,7 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                 card_find_list = re.findall(regex, message_object.text)
 
             if card_find_list:
-
-                if alt_text_check(client, card_find_list, thread_id, thread_type):
+                if alt_text_check(client, card_find_list, thread_id, thread_type, author_id):
                     for card_name in card_find_list:
                         card = None
                         if "[" in card_name:
@@ -51,8 +52,6 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                                         # scrython.cards.Named(fuzzy=set_code[0], set=set_code[1])
                                     else:
                                         print('not a code')
-                                        # for set_name in scrython.Sets.name(set_code[1]):
-                                        #     print(set_name)
                             except IndexError:
                                 card = card_search(card_name)
                                 # scrython.cards.Named(fuzzy=card_name)
@@ -103,16 +102,18 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                                                                        thread_id=thread_id, thread_type=thread_type)
 
 
-
 def card_search(card_name, set_code=None):
-        try:
-            if set_code:
-                card = scrython.cards.Named(fuzzy=card_name, set=set_code)
-            else:
-                card = scrython.cards.Named(fuzzy=card_name)
-            return card
-        except Exception as err:
-            return err
+    try:
+        if set_code:
+            card = scrython.cards.Named(fuzzy=card_name, set=set_code)
+        else:
+            card = scrython.cards.Named(fuzzy=card_name)
+        print(type(card))
+        #if type(card) is scrython.cards.cardid.CardsObject:
+        return card
+
+    except Exception as err:
+        return err
 
 
 def get_card_oracle_text(client, card_name, thread_id, thread_type):
@@ -126,7 +127,7 @@ def get_card_oracle_text(client, card_name, thread_id, thread_type):
             client.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
 
 
-def alt_text_check(client, card_find_list, thread_id, thread_type):
+def alt_text_check(client, card_find_list, thread_id, thread_type, author_id):
     if card_find_list[0].lower() == 'help':
         client.send(Message(text='Use !card name! for card image, shows most recent printing \n'
                                'Use ?card name? for image and format legality\n'
@@ -153,8 +154,67 @@ def alt_text_check(client, card_find_list, thread_id, thread_type):
                                                  thread_id=thread_id, thread_type=thread_type)
         client.send(Message(text=card_text), thread_id=thread_id, thread_type=thread_type)
         return False
+    # admin commands
+    if thread_type == ThreadType.GROUP:
+        group = client.fetchGroupInfo(thread_id)
+        if author_id in group[thread_id].admins:
+            return admin_settings(client, card_find_list, thread_id, thread_type, author_id)
+    else:
+        if config[thread_id]['thread_name'] == host:
+            return host_options(client, card_find_list, thread_id, thread_type)
+        else:
+            return admin_settings(client, card_find_list, thread_id, thread_type, author_id)
 
     return True
+
+
+def admin_settings(client, card_find_list, thread_id, thread_type, author_id):
+    if card_find_list[0].lower() == 'admin help':
+        client.send(Message(text='admin show errors \n'
+                                 'admin april fools'),
+                    thread_id=thread_id,
+                    thread_type=thread_type)
+        return False
+    elif card_find_list[0].lower() == 'admin show errors':
+        thread_config_change_bool(client, thread_id, thread_id, thread_type, 'show_errors')
+        return False
+    elif card_find_list[0].lower() == 'admin april fools':
+        thread_config_change_bool(client, thread_id, thread_id, thread_type, 'april_fools')
+        return False
+
+    return True
+
+
+def host_options(client, card_find_list, thread_id, thread_type):
+    if card_find_list[0].lower() == 'host show groups':
+        message_text = "\n".join(str(value['thread_name']) for key, value in config.items())
+        client.send(Message(text=message_text),
+                    thread_id=thread_id,
+                    thread_type=thread_type)
+        return False
+    elif 'host show errors' in card_find_list[0].lower():
+        thread_name = card_find_list[0].split('host show errors')[1]
+        host_update_thread(client, thread_id, thread_type, thread_name, "show_errors")
+        return False
+    elif 'host april fools' in card_find_list[0].lower():
+        thread_name = card_find_list[0].split('host april fools')[1]
+        host_update_thread(client, thread_id, thread_type, thread_name, "april_fools")
+        return False
+
+    return True
+
+def host_update_thread(client, thread_id, thread_type, thread_name, key_name):
+    chat_id = [key for key, info in config.items() if info["thread_name"] == thread_name]
+    if len(chat_id) > 0:
+        thread_config_change_bool(client, chat_id[0], thread_id, thread_type, key_name)
+
+
+def thread_config_change_bool(client, thread_id, message_thread_id, message_thread_type, key):
+    config[thread_id][key] = not config[thread_id][key]
+    send_text = '{} setting has been set to {}'.format(key, config[thread_id][key])
+    client.send(Message(text=send_text),
+                thread_id=message_thread_id,
+                thread_type=message_thread_type)
 
 
 def nickname_boxer_setting():

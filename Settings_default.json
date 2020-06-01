@@ -1,8 +1,7 @@
-{"credentials": {
-    "email": "",
-    "password": "",
-    "spoiler_thread":  ""
-},
-    "user_dict": {},
-    "spoiler_sets": []
+{
+    "credentials": {
+        "email": "",
+        "password": "",
+        "host": ""
+    }
 }

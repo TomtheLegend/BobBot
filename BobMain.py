@@ -11,6 +11,8 @@ import actions
 from os import path
 
 # Subclass fbchat.Client and override required methods
+
+
 class CardFetch(Client):
     def onReactionAdded(
         self,
@@ -34,9 +36,17 @@ class CardFetch(Client):
     def onMessageSeen(self, **kwargs):
         pass
 
-    def onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
+    def onMessage(self, mid=None,
+                  author_id=None,
+                  message=None,
+                  message_object=None,
+                  thread_id=None,
+                  thread_type=ThreadType.USER,
+                  ts=None,
+                  metadata=None,
+                  msg=None):
+
         self.markAsDelivered(author_id, thread_id)
-       #self.markAsRead(thread_id)
 
         if author_id != self.uid:
             actions.local_get_card(self, author_id, message_object, thread_id, thread_type)
@@ -161,6 +171,7 @@ if __name__ =='__main__':
         # If it fails, never mind, we'll just login again
         pass
 
+    actions.host = cred_List["host"]
     client = CardFetch(cred_List["email"], cred_List["password"],  session_cookies=cookies)
     # client = CardFetch(cred_List["email"], cred_List["password"],  session_cookies=cookies, logging_level=logging.DEBUG)
 
