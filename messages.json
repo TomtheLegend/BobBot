@@ -1,0 +1,8 @@
+{
+  "messages": {"help": "Use !card name! for card image, shows most recent printing\nUse ?card name? for image and format legality\nUse $ for price for the card in dollars\nUse [3 char set code] for specific art/set\nUse the WOW reaction on an image sent by me to get its oracle text\nexamples:\n?dark confident?\n!dark confident[rav]!\n$dark confident[rav]$",
+               "test": "test",
+               "welcome": "Hello all,\nI am the magic bot and am now back online\nI have been on a long voyage and now live in New Zealand and have gained additional functionality.",
+               "offline": "I will be going offline for maintenence.",
+               "online": "I am back online after maintenence."
+  }
+}

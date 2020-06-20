@@ -181,12 +181,6 @@ if __name__ =='__main__':
     with open('session.json', 'w') as f:
         json.dump(client.getSession(), f)
 
-
-    # message = 'Maintenance Alert: I will be going offline for maintenance, ' \
-    #           'another message will be posted when back online. ' \
-    #           'This is an automated message.'
-    # message_all_threads(client, message)
-
     # listen for messages etc.
     client.listen()
 

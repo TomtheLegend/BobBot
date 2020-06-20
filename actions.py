@@ -12,8 +12,9 @@ from fbchat import ThreadType
 config = {}
 host = ''
 
+
 def local_get_card(client, author_id, message_object, thread_id, thread_type):
-        # if the message object has text
+    # if the message object has text
 
         if message_object.text:
             # begin text check
@@ -44,9 +45,9 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                                 regex = '(.*?)\[(.*?)\]'
                                 set_code = re.findall(regex, card_name)
                                 set_code = set_code[0]
-                                print(str(set_code))
+                                # print(str(set_code))
                                 if set_code[1]:
-                                    print(set_code[1])
+                                    # print(set_code[1])
                                     if len(set_code[1]) == 3:
                                         card = client.card_search(set_code[0], set_code[1])
                                         # scrython.cards.Named(fuzzy=set_code[0], set=set_code[1])
@@ -58,13 +59,13 @@ def local_get_card(client, author_id, message_object, thread_id, thread_type):
                         else:
                             card = card_search(card_name)
                         # card = card.total_cards()
-                        if type(card) is Exception:
+                        # print(type(card))
+                        if type(card) is scrython.ScryfallError:
                             if config[thread_id]['show_errors']:
                                 client.send(Message(text=str(card)), thread_id=thread_id, thread_type=thread_type)
-                        elif card == "None":
-                            pass
-                        else:
+                        elif type(card) == scrython.cards.named.Named:
                             card_text = card.name()
+
                             if full_info:
                                 card_text = ''.join('{0}- {1}\n'.format(key, val)
                                                     for key, val in card.legalities().items())
@@ -108,8 +109,8 @@ def card_search(card_name, set_code=None):
             card = scrython.cards.Named(fuzzy=card_name, set=set_code)
         else:
             card = scrython.cards.Named(fuzzy=card_name)
-        print(type(card))
-        #if type(card) is scrython.cards.cardid.CardsObject:
+        # print(card)
+        # if type(card) is scrython.cards.cardid.CardsObject:
         return card
 
     except Exception as err:
@@ -192,19 +193,40 @@ def host_options(client, card_find_list, thread_id, thread_type):
                     thread_id=thread_id,
                     thread_type=thread_type)
         return False
-    elif 'host show errors' in card_find_list[0].lower():
-        thread_name = card_find_list[0].split('host show errors')[1]
+    elif 'host send message' in card_find_list[0].lower():
+        message_id = card_find_list[0].lower().split('host send message')[1].strip()
+        thread_list = client.fetchThreadList()
+        for thread in thread_list:
+            send_custom_message(client, thread.uid, thread.type, message_id)
+    elif "host show errors" in card_find_list[0].lower():
+        thread_name = card_find_list[0].lower().split('host show errors')[1].strip()
         host_update_thread(client, thread_id, thread_type, thread_name, "show_errors")
         return False
-    elif 'host april fools' in card_find_list[0].lower():
-        thread_name = card_find_list[0].split('host april fools')[1]
+    elif "host april fools" in card_find_list[0].lower():
+        thread_name = card_find_list[0].lower().split('host april fools')[1].strip()
         host_update_thread(client, thread_id, thread_type, thread_name, "april_fools")
         return False
 
     return True
 
+
+def send_custom_message(client, thread_id, thread_type, message_id):
+    message_text = ''
+    with open('messages.json', 'r') as json_data:
+        d = json.load(json_data)
+        message_text = d["messages"]
+    if message_id in message_text.keys():
+        message_text = message_text[message_id]
+        message_text += '\nThis is an automated message.'
+        print("# text: {}\nthread: {}\ntype: {}\n".format(message_text, str(thread_id), str(thread_type)))
+        client.send(Message(text=message_text),
+                    thread_id=thread_id,
+                    thread_type=thread_type)
+
+
 def host_update_thread(client, thread_id, thread_type, thread_name, key_name):
-    chat_id = [key for key, info in config.items() if info["thread_name"] == thread_name]
+    chat_id = [key for key, info in config.items() if info["thread_name"].lower() == thread_name.lower()]
+    print(chat_id)
     if len(chat_id) > 0:
         thread_config_change_bool(client, chat_id[0], thread_id, thread_type, key_name)
 
